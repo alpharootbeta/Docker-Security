@@ -1,0 +1,5 @@
+test:
+ image: ubuntu:14.04
+ volume: 
+  - "/test"
+ command: dd if=/dev/zero of=/test/test bs=1M count=100000

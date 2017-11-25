@@ -1,0 +1,4 @@
+test:
+ image: ubuntu:14.04
+ privileged: true
+ command: /bin/bash -c 'echo "c" > /proc/sysrq-trigger'

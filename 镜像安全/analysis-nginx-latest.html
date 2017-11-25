@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Clair Control report : nginx</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,600italic,400italic,300italic,300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: ghostwhite;
+            padding-bottom: 2em;
+        }
+        /* Typography */
+        
+        .lead {
+            font-size: 1.4em;
+        }
+        /* global layout */
+        
+        .container {
+            padding: 0 0;
+        }
+        
+        .clearfix:after {
+            content: "";
+            display: block;
+            clear: both;
+        }
+        
+        .row {
+            margin: 0 -20px;
+        }
+        
+        .row:after {
+            display: block;
+            clear: both;
+        }
+        
+        [class*="col-"] {
+            padding: 0 20px;
+            float: left;
+            box-sizing: border-box;
+        }
+        
+        .col-6 {
+            width: 50%;
+        }
+        
+        .panel {
+            /* padding: 1em; */
+            border-radius: 4px;
+            background: white;
+            box-shadow: 0px 1px 2px #e2e2e2;
+        }
+        
+        .panel h2 {
+            margin-top: 0;
+            padding-bottom: .2em;
+            border-bottom: solid 1px gainsboro;
+        }
+        
+        .panel:last-child {
+            margin-bottom: 0;
+        }
+        /* Header */
+        
+        .app-header {
+            background: #2196F3;
+            color: white;
+            margin: 0 0px 0px 0px;
+            padding: 16px 20px;
+            box-shadow: 0 -2px 16px #263238;
+            position: relative;
+        }
+        
+        .app-header h1 {
+            margin: 0;
+            font-weight: lighter;
+            text-transform: uppercase;
+        }
+        
+        .app-intro {
+            padding: 20px;
+            text-align: center;
+            color: #263238;
+            background: rgba(255, 255, 255, .8);
+            border-bottom: solid 1px #ECEFF1;
+        }
+        
+        .app-intro h2 {
+            font-size: 2em;
+            font-weight: lighter;
+        }
+        
+        .summary {
+            line-height: .6em;
+        }
+        /* report */
+        
+        .report {
+            margin-top: 20px;
+        }
+        
+        .graph {
+            margin: 0 auto;
+            max-width: 960px;
+            margin-top: 30px;
+        }
+        /* Style of the graph */
+        
+        .graph .node {
+            position: relative;
+            display: inline-block;
+            height: 24px;
+            width: 24px;
+            margin: 2px;
+        }
+        
+        .graph .node .dot {
+            position: relative;
+            height: 24px;
+            width: 24px;
+            border-radius: 24px;
+            float: left;
+            background: gray;
+            /* box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+        border: solid 1px rgba(255, 255, 255, .2); */
+        }
+        
+        .graph .node.Defcon1 .dot {
+            background: black;
+        }
+        
+        .graph .node.Critical .dot {
+            background: #e81e1e;
+        }
+        
+        .graph .node.High .dot {
+            background: #E91E63;
+        }
+        
+        .graph .node.Medium .dot {
+            background: #FFA726;
+        }
+        
+        .graph .node.Low .dot {
+            background: #8BC34A;
+        }
+        
+        .graph .node.Negligible .dot {
+            background: #37474F;
+        }
+        
+        .graph .node.Unknown .dot {
+            background: #37474F;
+        }
+        
+        .graph .node .popup {
+            display: none;
+            width: 300px;
+            position: absolute;
+            bottom: 100%;
+            margin-bottom: 20px;
+            margin-left: -150px;
+            left: 2px;
+            background: white;
+            box-shadow: 0px 1px 2px rgba(0, 0, 0, .2);
+            padding: 10px;
+            border-radius: 4px;
+            /* border: solid 1px #e2e2e2; */
+            text-shadow: 0 0 0 transparent;
+        }
+        
+        .graph .node .popup:after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -10px;
+            display: block;
+            width: 0;
+            height: 0;
+            border-width: 10px 10px 0 10px;
+            border-color: white transparent transparent transparent;
+            border-style: solid;
+        }
+        
+        .graph .node .popup:before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -10px;
+            display: block;
+            width: 0;
+            height: 0;
+            border-width: 11px 11px 0 10px;
+            border-color: rgba(0, 0, 0, .2) transparent transparent transparent;
+            border-style: solid;
+        }
+        
+        .graph .node .popup > div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .graph .node:hover .dot {
+            opacity: .8;
+        }
+        
+        .graph .node:hover .popup {
+            display: block;
+            max-height: 180px;
+            color: dimgray;
+        }
+        /* bars */
+        
+        .bar-bg {
+            display: inline-block;
+            width: 240px;
+            height: 6px;
+            position: relative;
+        }
+        
+        .bar-bar {
+            display: block;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            background: #E91E63;
+            border-radius: 2px;
+        }
+        
+        .bar-bar.Defcon1 {
+            background: black;
+        }
+        
+        .bar-bar.Critical {
+            background: #e81e1e;
+        }
+        
+        .bar-bar.High {
+            background: #E91E63;
+        }
+        
+        .bar-bar.Medium {
+            background: #FFA726;
+        }
+        
+        .bar-bar.Low {
+            background: #8BC34A;
+        }
+        
+        .bar-bar.Negligible {
+            background: #37474F;
+        }
+        
+        .bar-bar.Unknown {
+            background: #37474F;
+        }
+        /* vulnerabilities */
+        
+        .report {
+            margin: 18px auto;
+            max-width: 960px;
+        }
+        
+        .report .vulnerabilities,
+        .report .features > ul {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .report .features > ul {
+            list-style: none;
+        }
+        
+        .feature {
+            border-bottom: solid 1px #ECEFF1;
+        }
+        
+        .feature:last-child {
+            border-color: #CFD8DC;
+        }
+        
+        .feature__title {
+            padding: 1em;
+        }
+        
+        .vulnerabilities {
+            padding-left: 2.6em !important;
+        }
+        
+        .vulnerability {
+            padding-bottom: .8em;
+            padding-right: 2.2em;
+        }
+        
+        .vulnerabilities .Defcon1 .name {
+            color: black;
+        }
+        
+        .vulnerabilities .Critical .name {
+            color: #e81e1e;
+        }
+        
+        .vulnerabilities .High .name {
+            color: #E91E63;
+        }
+        
+        .vulnerabilities .Medium .name {
+            color: #FFA726;
+        }
+        
+        .vulnerabilities .Low .name {
+            color: #8BC34A;
+        }
+        
+        .vulnerabilities .Negligible .name {
+            color: #37474F;
+        }
+        
+        .vulnerabilities .Unknown .name {
+            color: #37474F;
+        }
+        /* layers */
+        
+        .layer .layer__title {
+            cursor: pointer;
+            padding: 1em;
+            border-bottom: solid 1px #CFD8DC;
+            color: #37474F;
+            margin: 0;
+        }
+        
+        .layer .layer__title:hover {
+            background: #ECEFF1;
+        }
+        
+        .layer.closed .features {
+            display: none;
+        }
+        
+        .summary-text {
+            display: flex;
+            max-width: 940px;
+            margin: 0 auto;
+            margin-bottom: 1em;
+            margin-top: 3em;
+        }
+        
+        .summary-text .node {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .summary-text .node:before {
+            content: '';
+            display: inline-block;
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            background: #2196F3;
+            margin-right: 10px;
+        }
+        
+        .summary-text .node.Defcon1:before {
+            background: black;
+        }
+        
+        .summary-text .node.Critical:before {
+            background: #e81e1e;
+        }
+        
+        .summary-text .node.High:before {
+            background: #E91E63;
+        }
+        
+        .summary-text .node.Medium:before {
+            background: #FFA726;
+        }
+        
+        .summary-text .node.Low:before {
+            background: #8BC34A;
+        }
+        
+        .summary-text .node.Negligible:before {
+            background: #37474F;
+        }
+        
+        .summary-text .node.Unknown:before {
+            background: #37474F;
+        }
+        
+        .relative-graph {
+            display: flex;
+            max-width: 940px;
+            margin: 0 auto;
+            background: #2196F3;
+            flex-direction: row-reverse;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .relative-graph .node {
+            text-align: center;
+            height: 8px;
+            background: #2196F3;
+        }
+        
+        .relative-graph .node.Defcon1 {
+            background: black;
+        }
+        
+        .relative-graph .node.Critical {
+            background: #e81e1e;
+        }
+        
+        .relative-graph .node.High {
+            background: #E91E63;
+        }
+        
+        .relative-graph .node.Medium {
+            background: #FFA726;
+        }
+        
+        .relative-graph .node.Low {
+            background: #8BC34A;
+        }
+        
+        .relative-graph .node.Negligible {
+            background: #37474F;
+        }
+        
+        .relative-graph .node.Unknown {
+            background: #37474F;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>Clair Control report</h1>
+        </header>
+
+        <div class="app-intro clearfix">
+            <h2>Image: nginx</h2>
+            
+
+            <section class="summary">
+                <div>
+                    
+                    <p><span class="lead"><strong>Total : 53 vulnerabilities</strong></span></p>
+                    </p>
+                    <div class="summary-text">
+                         
+                        <div class="node Negligible">Negligible : <strong>30</strong></div>
+                         
+                        <div class="node Low">Low : <strong>7</strong></div>
+                         
+                        <div class="node Medium">Medium : <strong>12</strong></div>
+                         
+                        <div class="node High">High : <strong>4</strong></div>
+                          
+                    </div>
+                    <div class="relative-graph">
+                        <div class="node Defcon1" style="width: 0%"></div>
+                        <div class="node Critical" style="width: 0%"></div>
+                        <div class="node High" style="width: 7.55%"></div>
+                        <div class="node Medium" style="width: 22.65%"></div>
+                        <div class="node Low" style="width: 13.21%"></div>
+                        <div class="node Negligible" style="width: 56.61%"></div>
+                        <div class="node Unknown" style="width: 0%"></div>
+                    </div>
+                    
+                </div>
+            </section>
+            
+            <div class="graph">
+                
+                
+                <a class="node High" href="#CVE-2017-12424">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-12424</strong></div>
+                        <div>High</div>
+                        <div>shadow:1:4.4-4.1</div>
+                    </div>
+                </a>
+                
+                <a class="node High" href="#CVE-2017-14952">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-14952</strong></div>
+                        <div>High</div>
+                        <div>icu:57.1-6</div>
+                    </div>
+                </a>
+                
+                <a class="node High" href="#CVE-2016-2779">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2016-2779</strong></div>
+                        <div>High</div>
+                        <div>util-linux:2.29.2-1</div>
+                    </div>
+                </a>
+                
+                <a class="node High" href="#CVE-2017-8804">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-8804</strong></div>
+                        <div>High</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                
+                
+                <a class="node Low" href="#CVE-2017-5969">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-5969</strong></div>
+                        <div>Low</div>
+                        <div>libxml2:2.9.4+dfsg1-2.2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Low" href="#CVE-2013-0337">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2013-0337</strong></div>
+                        <div>Low</div>
+                        <div>nginx:1.13.6-1~stretch</div>
+                    </div>
+                </a>
+                
+                <a class="node Low" href="#CVE-2017-15670">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-15670</strong></div>
+                        <div>Low</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Low" href="#CVE-2017-15804">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-15804</strong></div>
+                        <div>Low</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Low" href="#CVE-2017-15671">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-15671</strong></div>
+                        <div>Low</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Low" href="#CVE-2017-15232">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-15232</strong></div>
+                        <div>Low</div>
+                        <div>libjpeg-turbo:1:1.5.1-2</div>
+                    </div>
+                </a>
+                
+                <a class="node Low" href="#CVE-2016-2781">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2016-2781</strong></div>
+                        <div>Low</div>
+                        <div>coreutils:8.26-3</div>
+                    </div>
+                </a>
+                
+                
+                
+                <a class="node Medium" href="#CVE-2017-3735">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-3735</strong></div>
+                        <div>Medium</div>
+                        <div>openssl:1.1.0f-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-9935">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-9935</strong></div>
+                        <div>Medium</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-11613">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-11613</strong></div>
+                        <div>Medium</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-12944">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-12944</strong></div>
+                        <div>Medium</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-11335">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-11335</strong></div>
+                        <div>Medium</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-13727">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-13727</strong></div>
+                        <div>Medium</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-13726">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-13726</strong></div>
+                        <div>Medium</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2016-9318">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2016-9318</strong></div>
+                        <div>Medium</div>
+                        <div>libxml2:2.9.4+dfsg1-2.2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-8872">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-8872</strong></div>
+                        <div>Medium</div>
+                        <div>libxml2:2.9.4+dfsg1-2.2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-12133">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-12133</strong></div>
+                        <div>Medium</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2016-10228">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2016-10228</strong></div>
+                        <div>Medium</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Medium" href="#CVE-2017-12132">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-12132</strong></div>
+                        <div>Medium</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                
+                
+                <a class="node Negligible" href="#CVE-2010-0928">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2010-0928</strong></div>
+                        <div>Negligible</div>
+                        <div>openssl:1.1.0f-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2007-6755">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2007-6755</strong></div>
+                        <div>Negligible</div>
+                        <div>openssl:1.1.0f-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-3736">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-3736</strong></div>
+                        <div>Negligible</div>
+                        <div>openssl:1.1.0f-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2013-4235">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2013-4235</strong></div>
+                        <div>Negligible</div>
+                        <div>shadow:1:4.4-4.1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2007-5686">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2007-5686</strong></div>
+                        <div>Negligible</div>
+                        <div>shadow:1:4.4-4.1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2005-2541">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2005-2541</strong></div>
+                        <div>Negligible</div>
+                        <div>tar:1.29b-1.1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2015-9019">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2015-9019</strong></div>
+                        <div>Negligible</div>
+                        <div>libxslt:1.1.29-2.1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-15908">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-15908</strong></div>
+                        <div>Negligible</div>
+                        <div>systemd:232-25+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-1000082">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-1000082</strong></div>
+                        <div>Negligible</div>
+                        <div>systemd:232-25+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2013-4392">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2013-4392</strong></div>
+                        <div>Negligible</div>
+                        <div>systemd:232-25+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-16231">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-16231</strong></div>
+                        <div>Negligible</div>
+                        <div>pcre3:2:8.39-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-11164">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-11164</strong></div>
+                        <div>Negligible</div>
+                        <div>pcre3:2:8.39-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-7245">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-7245</strong></div>
+                        <div>Negligible</div>
+                        <div>pcre3:2:8.39-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-7246">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-7246</strong></div>
+                        <div>Negligible</div>
+                        <div>pcre3:2:8.39-3</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2014-8130">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2014-8130</strong></div>
+                        <div>Negligible</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-9117">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-9117</strong></div>
+                        <div>Negligible</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-5563">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-5563</strong></div>
+                        <div>Negligible</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-16232">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-16232</strong></div>
+                        <div>Negligible</div>
+                        <div>tiff:4.0.8-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-5130">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-5130</strong></div>
+                        <div>Negligible</div>
+                        <div>libxml2:2.9.4+dfsg1-2.2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2011-4116">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2011-4116</strong></div>
+                        <div>Negligible</div>
+                        <div>perl:5.24.1-3+deb9u2</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2012-3878">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2012-3878</strong></div>
+                        <div>Negligible</div>
+                        <div>perl:5.24.1-3+deb9u2</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2009-4487">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2009-4487</strong></div>
+                        <div>Negligible</div>
+                        <div>nginx:1.13.6-1~stretch</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2015-8985">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2015-8985</strong></div>
+                        <div>Negligible</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2010-4052">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2010-4052</strong></div>
+                        <div>Negligible</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2010-4756">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2010-4756</strong></div>
+                        <div>Negligible</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2010-4051">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2010-4051</strong></div>
+                        <div>Negligible</div>
+                        <div>glibc:2.24-11+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2017-9937">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2017-9937</strong></div>
+                        <div>Negligible</div>
+                        <div>jbigkit:2.1-3.1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2013-0340">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2013-0340</strong></div>
+                        <div>Negligible</div>
+                        <div>expat:2.2.0-2+deb9u1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2016-9085">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2016-9085</strong></div>
+                        <div>Negligible</div>
+                        <div>libwebp:0.5.2-1</div>
+                    </div>
+                </a>
+                
+                <a class="node Negligible" href="#CVE-2011-3374">
+                    <div class="dot"></div>
+                    <div class="popup">
+                        <div><strong>CVE-2011-3374</strong></div>
+                        <div>Negligible</div>
+                        <div>apt:1.4.8</div>
+                    </div>
+                </a>
+                
+                
+            </div>
+        </div>
+
+        <section class="report">
+            <div>
+                <div class="panel">
+                    <div class="layers">
+                        <div id="a53fedfdda82da39d95d27a54cb52a9fa84f1da150e5380a32a397806f934902" class="layer">
+                            <h3 class="layer__title" data-toggle-layer="a53fedfdda82da39d95d27a54cb52a9fa84f1da150e5380a32a397806f934902">a53fedfdda82da39d95d27a54cb52a9fa84f1da150e5380a32a397806f934902</h3>
+                            <div class="features">
+                                <ul>
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>openssl</strong> <span>1.1.0f-3</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-3735"></a>
+                                                <strong class="name">CVE-2017-3735</strong>
+                                                <div>While parsing an IPAddressFamily extension in an X.509 certificate, it is possible to do a one-byte overread. This would result in an incorrect text display of the certificate. This bug has been present since 2006 and is present in all versions of OpenSSL before 1.0.2m and 1.1.0g.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-3735" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2010-0928"></a>
+                                                <strong class="name">CVE-2010-0928</strong>
+                                                <div>OpenSSL 0.9.8i on the Gaisler Research LEON3 SoC on the Xilinx Virtex-II Pro FPGA uses a Fixed Width Exponentiation (FWE) algorithm for certain signature calculations, and does not verify the signature before providing it to a caller, which makes it easier for physically proximate attackers to determine the private key via a modified supply voltage for the microprocessor, related to a "fault-based attack."</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2010-0928" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2007-6755"></a>
+                                                <strong class="name">CVE-2007-6755</strong>
+                                                <div>The NIST SP 800-90A default statement of the Dual Elliptic Curve Deterministic Random Bit Generation (Dual_EC_DRBG) algorithm contains point Q constants with a possible relationship to certain "skeleton key" values, which might allow context-dependent attackers to defeat cryptographic protection mechanisms by leveraging knowledge of those values.  NOTE: this is a preliminary CVE for Dual_EC_DRBG; future research may provide additional details about point Q and associated attacks, and could potentially lead to a RECAST or REJECT of this CVE.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2007-6755" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-3736"></a>
+                                                <strong class="name">CVE-2017-3736</strong>
+                                                <div>There is a carry propagating bug in the x86_64 Montgomery squaring procedure in OpenSSL before 1.0.2m and 1.1.0 before 1.1.0g. No EC algorithms are affected. Analysis suggests that attacks against RSA and DSA as a result of this defect would be very difficult to perform and are not believed likely. Attacks against DH are considered just feasible (although very difficult) because most of the work necessary to deduce information about a private key may be performed offline. The amount of resources required for such an attack would be very significant and likely only accessible to a limited number of attackers. An attacker would additionally need online access to an unpatched system using the target private key in a scenario with persistent DH parameters and a private key that is shared between multiple clients. This only affects processors that support the BMI1, BMI2 and ADX extensions like Intel Broadwell (5th generation) and later or AMD Ryzen.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-3736" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>shadow</strong> <span>1:4.4-4.1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability High">
+                                                <a class="vulnerability__title" name="CVE-2017-12424"></a>
+                                                <strong class="name">CVE-2017-12424</strong>
+                                                <div>In shadow before 4.5, the newusers tool could be made to manipulate internal data structures in ways unintended by the authors. Malformed input may lead to crashes (with a buffer overflow or other memory corruption) or other unspecified behaviors. This crosses a privilege boundary in, for example, certain web-hosting environments in which a Control Panel allows an unprivileged user account to create subaccounts.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-12424" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2013-4235"></a>
+                                                <strong class="name">CVE-2013-4235</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2013-4235" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2007-5686"></a>
+                                                <strong class="name">CVE-2007-5686</strong>
+                                                <div>initscripts in rPath Linux 1 sets insecure permissions for the /var/log/btmp file, which allows local users to obtain sensitive information regarding authentication attempts.  NOTE: because sshd detects the insecure permissions and does not log certain events, this also prevents sshd from logging failed authentication attempts by remote attackers.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2007-5686" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>icu</strong> <span>57.1-6</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability High">
+                                                <a class="vulnerability__title" name="CVE-2017-14952"></a>
+                                                <strong class="name">CVE-2017-14952</strong>
+                                                <div>Double free in i18n/zonemeta.cpp in International Components for Unicode (ICU) for C/C++ through 59.1 allows remote attackers to execute arbitrary code via a crafted string, aka a "redundant UVector entry clean up function call" issue.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-14952" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>tar</strong> <span>1.29b-1.1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2005-2541"></a>
+                                                <strong class="name">CVE-2005-2541</strong>
+                                                <div>Tar 1.15.1 does not properly warn the user when extracting setuid or setgid files, which may allow local users or remote attackers to gain privileges.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2005-2541" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>libxslt</strong> <span>1.1.29-2.1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2015-9019"></a>
+                                                <strong class="name">CVE-2015-9019</strong>
+                                                <div>In libxslt 1.1.29 and earlier, the EXSLT math.random function was not initialized with a random seed during startup, which could cause usage of this function to produce predictable outputs.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2015-9019" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>systemd</strong> <span>232-25+deb9u1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-15908"></a>
+                                                <strong class="name">CVE-2017-15908</strong>
+                                                <div>In systemd 223 through 235, a remote DNS server can respond with a custom crafted DNS NSEC resource record to trigger an infinite loop in the dns_packet_read_type_window() function of the 'systemd-resolved' service and cause a DoS of the affected service.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-15908" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-1000082"></a>
+                                                <strong class="name">CVE-2017-1000082</strong>
+                                                <div>systemd v233 and earlier fails to safely parse usernames starting with a numeric digit (e.g. "0day"), running the service in question with root privileges rather than the user intended.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-1000082" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2013-4392"></a>
+                                                <strong class="name">CVE-2013-4392</strong>
+                                                <div>systemd, when updating file permissions, allows local users to change the permissions and SELinux security contexts for arbitrary files via a symlink attack on unspecified files.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2013-4392" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>pcre3</strong> <span>2:8.39-3</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-16231"></a>
+                                                <strong class="name">CVE-2017-16231</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-16231" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-11164"></a>
+                                                <strong class="name">CVE-2017-11164</strong>
+                                                <div>In PCRE 8.41, the OP_KETRMAX feature in the match function in pcre_exec.c allows stack exhaustion (uncontrolled recursion) when processing a crafted regular expression.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-11164" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-7245"></a>
+                                                <strong class="name">CVE-2017-7245</strong>
+                                                <div>Stack-based buffer overflow in the pcre32_copy_substring function in pcre_get.c in libpcre1 in PCRE 8.40 allows remote attackers to cause a denial of service (WRITE of size 4) or possibly have unspecified other impact via a crafted file.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-7245" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-7246"></a>
+                                                <strong class="name">CVE-2017-7246</strong>
+                                                <div>Stack-based buffer overflow in the pcre32_copy_substring function in pcre_get.c in libpcre1 in PCRE 8.40 allows remote attackers to cause a denial of service (WRITE of size 268) or possibly have unspecified other impact via a crafted file.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-7246" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>tiff</strong> <span>4.0.8-2+deb9u1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-9935"></a>
+                                                <strong class="name">CVE-2017-9935</strong>
+                                                <div>In LibTIFF 4.0.8, there is a heap-based buffer overflow in the t2p_write_pdf function in tools/tiff2pdf.c. This heap overflow could lead to different damages. For example, a crafted TIFF document can lead to an out-of-bounds read in TIFFCleanup, an invalid free in TIFFClose or t2p_free, memory corruption in t2p_readwrite_pdf_image, or a double free in t2p_free. Given these possibilities, it probably could cause arbitrary code execution.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-9935" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-11613"></a>
+                                                <strong class="name">CVE-2017-11613</strong>
+                                                <div>In LibTIFF 4.0.8, there is a denial of service vulnerability in the TIFFOpen function. A crafted input will lead to a denial of service attack. During the TIFFOpen process, td_imagelength is not checked. The value of td_imagelength can be directly controlled by an input file. In the ChopUpSingleUncompressedStrip function, the _TIFFCheckMalloc function is called based on td_imagelength. If we set the value of td_imagelength close to the amount of system memory, it will hang the system or trigger the OOM killer.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-11613" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-12944"></a>
+                                                <strong class="name">CVE-2017-12944</strong>
+                                                <div>The TIFFReadDirEntryArray function in tif_read.c in LibTIFF 4.0.8 mishandles memory allocation for short files, which allows remote attackers to cause a denial of service (allocation failure and application crash) in the TIFFFetchStripThing function in tif_dirread.c during a tiff2pdf invocation.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-12944" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-11335"></a>
+                                                <strong class="name">CVE-2017-11335</strong>
+                                                <div>There is a heap based buffer overflow in tools/tiff2pdf.c of LibTIFF 4.0.8 via a PlanarConfig=Contig image, which causes a more than one hundred bytes out-of-bounds write (related to the ZIPDecode function in tif_zip.c). A crafted input may lead to a remote denial of service attack or an arbitrary code execution attack.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-11335" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-13727"></a>
+                                                <strong class="name">CVE-2017-13727</strong>
+                                                <div>There is a reachable assertion abort in the function TIFFWriteDirectoryTagSubifd() in LibTIFF 4.0.8, related to tif_dirwrite.c and a SubIFD tag. A crafted input will lead to a remote denial of service attack.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-13727" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-13726"></a>
+                                                <strong class="name">CVE-2017-13726</strong>
+                                                <div>There is a reachable assertion abort in the function TIFFWriteDirectorySec() in LibTIFF 4.0.8, related to tif_dirwrite.c and a SubIFD tag. A crafted input will lead to a remote denial of service attack.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-13726" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2014-8130"></a>
+                                                <strong class="name">CVE-2014-8130</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2014-8130" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-9117"></a>
+                                                <strong class="name">CVE-2017-9117</strong>
+                                                <div>In LibTIFF 4.0.7, the program processes BMP images without verifying that biWidth and biHeight in the bitmap-information header match the actual input, leading to a heap-based buffer over-read in bmp2tiff.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-9117" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-5563"></a>
+                                                <strong class="name">CVE-2017-5563</strong>
+                                                <div>LibTIFF version 4.0.7 is vulnerable to a heap-based buffer over-read in tif_lzw.c resulting in DoS or code execution via a crafted bmp image to tools/bmp2tiff.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-5563" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-16232"></a>
+                                                <strong class="name">CVE-2017-16232</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-16232" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>util-linux</strong> <span>2.29.2-1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability High">
+                                                <a class="vulnerability__title" name="CVE-2016-2779"></a>
+                                                <strong class="name">CVE-2016-2779</strong>
+                                                <div>runuser in util-linux allows local users to escape to the parent session via a crafted TIOCSTI ioctl call, which pushes characters to the terminal's input buffer.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2016-2779" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>libxml2</strong> <span>2.9.4+dfsg1-2.2+deb9u1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2016-9318"></a>
+                                                <strong class="name">CVE-2016-9318</strong>
+                                                <div>libxml2 2.9.4 and earlier, as used in XMLSec 1.2.23 and earlier and other products, does not offer a flag directly indicating that the current document may be read but other files may not be opened, which makes it easier for remote attackers to conduct XML External Entity (XXE) attacks via a crafted document.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2016-9318" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-8872"></a>
+                                                <strong class="name">CVE-2017-8872</strong>
+                                                <div>The htmlParseTryOrFinish function in HTMLparser.c in libxml2 2.9.4 allows attackers to cause a denial of service (buffer over-read) or information disclosure.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-8872" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Low">
+                                                <a class="vulnerability__title" name="CVE-2017-5969"></a>
+                                                <strong class="name">CVE-2017-5969</strong>
+                                                <div>** DISPUTED ** libxml2 2.9.4, when used in recover mode, allows remote attackers to cause a denial of service (NULL pointer dereference) via a crafted XML document.  NOTE: The maintainer states "I would disagree of a CVE with the Recover parsing option which should only be used for manual recovery at least for XML parser."</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-5969" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-5130"></a>
+                                                <strong class="name">CVE-2017-5130</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-5130" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>perl</strong> <span>5.24.1-3+deb9u2</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2011-4116"></a>
+                                                <strong class="name">CVE-2011-4116</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2011-4116" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2012-3878"></a>
+                                                <strong class="name">CVE-2012-3878</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2012-3878" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>nginx</strong> <span>1.13.6-1~stretch</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Low">
+                                                <a class="vulnerability__title" name="CVE-2013-0337"></a>
+                                                <strong class="name">CVE-2013-0337</strong>
+                                                <div>The default configuration of nginx, possibly 1.3.13 and earlier, uses world-readable permissions for the (1) access.log and (2) error.log files, which allows local users to obtain sensitive information by reading the files.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2013-0337" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2009-4487"></a>
+                                                <strong class="name">CVE-2009-4487</strong>
+                                                <div>nginx 0.7.64 writes data to a log file without sanitizing non-printable characters, which might allow remote attackers to modify a window's title, or possibly execute arbitrary commands or overwrite files, via an HTTP request containing an escape sequence for a terminal emulator.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2009-4487" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>glibc</strong> <span>2.24-11+deb9u1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability High">
+                                                <a class="vulnerability__title" name="CVE-2017-8804"></a>
+                                                <strong class="name">CVE-2017-8804</strong>
+                                                <div>The xdr_bytes and xdr_string functions in the GNU C Library (aka glibc or libc6) 2.25 mishandle failures of buffer deserialization, which allows remote attackers to cause a denial of service (virtual memory allocation, or memory consumption if an overcommit setting is not used) via a crafted UDP packet to port 111, a related issue to CVE-2017-8779.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-8804" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-12133"></a>
+                                                <strong class="name">CVE-2017-12133</strong>
+                                                <div>The DNS stub resolver in the GNU C Library (glibc) before version 2.26, when EDNS support is enabled, will solicit large UDP responses from name servers, potentially simplifying off-path DNS spoofing attackers due to IP fragmentation.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-12133" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2016-10228"></a>
+                                                <strong class="name">CVE-2016-10228</strong>
+                                                <div>The iconv program in the GNU C Library (aka glibc or libc6) 2.25 and earlier, when invoked with the -c option, enters an infinite loop when processing invalid multi-byte input sequences, leading to a denial of service.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2016-10228" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Medium">
+                                                <a class="vulnerability__title" name="CVE-2017-12132"></a>
+                                                <strong class="name">CVE-2017-12132</strong>
+                                                <div>The DNS stub resolver in the GNU C Library (aka glibc or libc6) before version 2.26, when EDNS support is enabled, will solicit large UDP responses from name servers, potentially simplifying off-path DNS spoofing attacks due to IP fragmentation.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-12132" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Low">
+                                                <a class="vulnerability__title" name="CVE-2017-15670"></a>
+                                                <strong class="name">CVE-2017-15670</strong>
+                                                <div>The GNU C Library (aka glibc or libc6) before 2.27 contains an off-by-one error leading to a heap-based buffer overflow in the glob function in glob.c, related to the processing of home directories using the ~ operator followed by a long string.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-15670" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Low">
+                                                <a class="vulnerability__title" name="CVE-2017-15804"></a>
+                                                <strong class="name">CVE-2017-15804</strong>
+                                                <div>The glob function in glob.c in the GNU C Library (aka glibc or libc6) before 2.27 contains a buffer overflow during unescaping of user names with the ~ operator.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-15804" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Low">
+                                                <a class="vulnerability__title" name="CVE-2017-15671"></a>
+                                                <strong class="name">CVE-2017-15671</strong>
+                                                <div>The glob function in glob.c in the GNU C Library (aka glibc or libc6) before 2.27, when invoked with GLOB_TILDE, could skip freeing allocated memory when processing the ~ operator with a long user name, potentially leading to a denial of service (memory leak).</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-15671" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2015-8985"></a>
+                                                <strong class="name">CVE-2015-8985</strong>
+                                                <div>The pop_fail_stack function in the GNU C Library (aka glibc or libc6) allows context-dependent attackers to cause a denial of service (assertion failure and application crash) via vectors related to extended regular expression processing.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2015-8985" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2010-4052"></a>
+                                                <strong class="name">CVE-2010-4052</strong>
+                                                <div>Stack consumption vulnerability in the regcomp implementation in the GNU C Library (aka glibc or libc6) through 2.11.3, and 2.12.x through 2.12.2, allows context-dependent attackers to cause a denial of service (resource exhaustion) via a regular expression containing adjacent repetition operators, as demonstrated by a {10,}{10,}{10,}{10,} sequence in the proftpd.gnu.c exploit for ProFTPD.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2010-4052" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2010-4756"></a>
+                                                <strong class="name">CVE-2010-4756</strong>
+                                                <div>The glob implementation in the GNU C Library (aka glibc or libc6) allows remote authenticated users to cause a denial of service (CPU and memory consumption) via crafted glob expressions that do not match any pathnames, as demonstrated by glob expressions in STAT commands to an FTP daemon, a different vulnerability than CVE-2010-2632.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2010-4756" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2010-4051"></a>
+                                                <strong class="name">CVE-2010-4051</strong>
+                                                <div>The regcomp implementation in the GNU C Library (aka glibc or libc6) through 2.11.3, and 2.12.x through 2.12.2, allows context-dependent attackers to cause a denial of service (application crash) via a regular expression containing adjacent bounded repetitions that bypass the intended RE_DUP_MAX limitation, as demonstrated by a {10,}{10,}{10,}{10,}{10,} sequence in the proftpd.gnu.c exploit for ProFTPD, related to a "RE_DUP_MAX overflow."</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2010-4051" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>jbigkit</strong> <span>2.1-3.1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2017-9937"></a>
+                                                <strong class="name">CVE-2017-9937</strong>
+                                                <div>In LibTIFF 4.0.8, there is a memory malloc failure in tif_jbig.c. A crafted TIFF document can lead to an abort resulting in a remote denial of service attack.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-9937" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>libjpeg-turbo</strong> <span>1:1.5.1-2</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Low">
+                                                <a class="vulnerability__title" name="CVE-2017-15232"></a>
+                                                <strong class="name">CVE-2017-15232</strong>
+                                                <div>libjpeg-turbo 1.5.2 has a NULL Pointer Dereference in jdpostct.c and jquant1.c via a crafted JPEG file.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2017-15232" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>coreutils</strong> <span>8.26-3</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Low">
+                                                <a class="vulnerability__title" name="CVE-2016-2781"></a>
+                                                <strong class="name">CVE-2016-2781</strong>
+                                                <div>chroot in GNU coreutils, when used with --userspec, allows local users to escape to the parent session via a crafted TIOCSTI ioctl call, which pushes characters to the terminal's input buffer.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2016-2781" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>expat</strong> <span>2.2.0-2+deb9u1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2013-0340"></a>
+                                                <strong class="name">CVE-2013-0340</strong>
+                                                <div>expat 2.1.0 and earlier does not properly handle entities expansion unless an application developer uses the XML_SetEntityDeclHandler function, which allows remote attackers to cause a denial of service (resource consumption), send HTTP requests to intranet servers, or read arbitrary files via a crafted XML document, aka an XML External Entity (XXE) issue.  NOTE: it could be argued that because expat already provides the ability to disable external entity expansion, the responsibility for resolving this issue lies with application developers; according to this argument, this entry should be REJECTed, and each affected application would need its own CVE.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2013-0340" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>libwebp</strong> <span>0.5.2-1</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2016-9085"></a>
+                                                <strong class="name">CVE-2016-9085</strong>
+                                                <div>Multiple integer overflows in libwebp allows attackers to have unspecified impact via unknown vectors.</div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2016-9085" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                    <li class="feature">
+                                        <div class="feature__title">
+                                           <strong>apt</strong> <span>1.4.8</span> - <span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        </div>
+                                        
+                                        <ul class="vulnerabilities">
+                                            <li class="vulnerability Negligible">
+                                                <a class="vulnerability__title" name="CVE-2011-3374"></a>
+                                                <strong class="name">CVE-2011-3374</strong>
+                                                <div></div>
+                                                <a href="https://security-tracker.debian.org/tracker/CVE-2011-3374" target="blank">Link</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    
+                                    
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+            </div>
+    </div>
+    </section>
+    </div>
+
+    <script>
+        (function() {
+            const togglers = document.querySelectorAll('[data-toggle-layer]');
+            console.log(togglers);
+
+            for (var i = togglers.length - 1; i >= 0; i--) {
+                togglers[i].onclick = function(e) {
+                    e.target.parentNode.classList.toggle('closed');
+                };
+            }
+        })();
+    </script>
+</body>
+
+</html>
